@@ -168,6 +168,7 @@ def spoof(iface_, target_ip_addr_, victim_ip_addr_):
                        src_ip_=victim_ip_addr_,
                        dest_mac_=target_mac_addr,
                        dest_ip_=target_ip_addr_)
+    print("sending ARP spoofing packet...")
     while 1:
         try:
             arp_response(iface_, eth_addr, arp_addr)
